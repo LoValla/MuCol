@@ -1,0 +1,44 @@
+<processor name="MergeTrackHits" type="MergeCollections">
+    <parameter name="InputCollections" type="StringVec">
+        VXDBarrelHits
+        VXDEndcapHits
+        ITBarrelHits
+        ITEndcapHits
+        OTBarrelHits
+        OTEndcapHits
+    </parameter>
+    <parameter name="OutputCollection" type="string"> AllTrackerHits </parameter>
+</processor>
+
+<processor name="MergeCalHits" type="MergeCollections">
+    <parameter name="InputCollections" type="StringVec">
+        ECALBarrelHits
+        ECALEndcapHits
+        ECALOtherHits
+        HCALBarrelHits
+        HCALEndcapHits
+        HCALOtherHits
+    </parameter>
+    <parameter name="OutputCollection" type="string"> AllCalHits </parameter>
+</processor>
+
+<processor name="MergeSimCalHits" type="MergeCollections">
+    <parameter name="InputCollections" type="StringVec">
+        ECalBarrelCollection
+        ECalEndcapCollection
+        ECalPlugCollection
+        HCalBarrelCollection
+        HCalEndcapCollection
+        HCalRingCollection
+    </parameter>
+    <parameter name="OutputCollection" type="string"> AllSimCalHits </parameter>
+</processor>
+
+<processor name="MergePFOs" type="MergeCollections">
+    <parameter name="InputCollections" type="StringVec">
+        PandoraPFOs
+        PFOsFromJets
+        TauRec_PFO
+    </parameter>
+    <parameter name="OutputCollection" type="string"> AllPFOs </parameter>
+</processor>
