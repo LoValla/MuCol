@@ -1,5 +1,5 @@
 'pigun_generator.py', in the AFSrepo repository, is the file to generate the 'piguns.slcio' file containing the pion guns for the analysis.
-Default: flat in E between 5 and 300 GeV, flat in theta between 10° and 170° (can be modified)
+Default settings: flat in E between 5 and 300 GeV, flat in theta between 10° and 170° (can be modified)
 
 -------------------------------------------------------------------------
 
