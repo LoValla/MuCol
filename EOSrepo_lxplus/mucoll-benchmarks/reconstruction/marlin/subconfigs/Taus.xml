@@ -1,0 +1,64 @@
+<!--==========TAUS============-->
+<processor name="MyTauFinder" type="TauFinder">
+    <!--TauFinder writes tau candidates as ReconstructedParticles into collection. It runs on a collection of ReconstructedParticels, if you want  to run on MCParticles you have to convert them before hand (use e.g. PrepareRECParticles processor)-->
+    <!--Name of the Signal output file -->
+    <parameter name="FileName_Signal" type="string">./Outputs/Taus.root </parameter>
+    <!--Collection of PFOs-->
+    <parameter name="PFOCollection" type="string" lcioInType="ReconstructedParticle">PandoraPFOs </parameter>
+    <!--Collection of Tau Candidates-->
+    <parameter name="TauRecCollection" type="string" lcioOutType="ReconstructedParticle">TauRec_PFO </parameter>
+    <!--Name of the Tau link to ReconstructedParticle collection-->
+    <parameter name="TauRecLinkCollectionName" type="string" lcioOutType="LCRelation">TauRecLink_PFO </parameter>
+    <!--Collection of Particles in Rest Group not in Tau Candidates-->
+    <parameter name="TauRecRestCollection" type="string" lcioOutType="ReconstructedParticle">TauRecRest_PFO </parameter>
+    <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+    <parameter name="Verbosity" type="string">DEBUG</parameter>
+    <!--Cut on cosT to suppress background-->
+    <parameter name="cosT_cut" type="float">0.99 </parameter>
+    <!--Upper limit on invariant mass of tau candidate-->
+    <parameter name="invariant_mass" type="float">2 </parameter>
+    <!--Outer isolation cone around search cone of tau jet in rad (relativ to cone angle)-->
+    <parameter name="isolationConeAngle" type="float">0.2 </parameter>
+    <!--Energy allowed within isolation cone region-->
+    <parameter name="isolationEnergy" type="float">5 </parameter>
+    <!--Cut on pt to suppress background-->
+    <parameter name="pt_cut" type="float">0.1 </parameter>
+    <!--Minimum tranverse momentum of tau seed-->
+    <parameter name="ptseed" type="float">5.0 </parameter>
+    <!--Opening angle of the search cone for tau jet in rad-->
+    <parameter name="searchConeAngle" type="float">0.05 </parameter>
+</processor>
+
+<processor name="MyTaJetClustering" type="TaJetClustering">
+    <!--Tau Jet Finding-->
+    <!--Low energy tracks can be accepted as either charged and neutral if true-->
+    <parameter name="AcceptFlexibleLowEnergyTrack" type="int">0 </parameter>
+    <!--Maximum cosine angle for cone-->
+    <parameter name="ConeMaxCosAngle" type="double">1 </parameter>
+    <!--Energy fraction of cone compared to central-->
+    <parameter name="ConeMaxEnergyFrac" type="double">0.1 </parameter>
+    <!--Minimum cosine angle for cone-->
+    <parameter name="ConeMinCosAngle" type="double">0.9 </parameter>
+    <!--Reject 3-prong taus if including neutral energy more than this number in GeV-->
+    <parameter name="MaximumNeutralEnergyIn3Prong" type="double">100 </parameter>
+    <!--Minimum jet energy to be accepted as taus-->
+    <parameter name="MinimumJetEnergy" type="double">1 </parameter>
+    <!--Minimum track energy to be accepted as taus-->
+    <parameter name="MinimumTrackEnergy" type="double">1 </parameter>
+    <!--Minimum track energy to be counted-->
+    <parameter name="MinimumTrackEnergyAssoc" type="double">1 </parameter>
+    <!--Neither primary nor cone cut at all if true. Only clustering.-->
+    <parameter name="NoSelection" type="int">0 </parameter>
+    <!--Tau output collection-->
+    <parameter name="OutputTauCollection" type="string" lcioOutType="ReconstructedParticle">TaJets </parameter>
+    <!--PandoraPFA PFO collection-->
+    <parameter name="PFOCollection" type="string" lcioInType="ReconstructedParticle">PandoraPFOs </parameter>
+    <!--Remained PFO collection-->
+    <parameter name="RemainPFOCollection" type="string" lcioOutType="ReconstructedParticle">RemainPFOs </parameter>
+    <!--Allowed cosine angle to be clustered-->
+    <parameter name="TauCosAngle" type="double">0.98 </parameter>
+    <!--Tau mass for tau clustering [GeV]-->
+    <parameter name="TauMass" type="double">1.778 </parameter>
+    <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+    <parameter name="Verbosity" type="string">MESSAGE </parameter>
+</processor>

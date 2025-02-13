@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<marlin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ilcsoft.desy.de/marlin/marlin.xsd">
+    <constants>
+        <!-- define constants here - use in steering file as ${ConstantName} -->
+        <!--constant name="DetectorModel" value="ILD_l5_o1_v02" /-->
+    </constants>
+
+    <execute>
+        <processor name="MyAIDAProcessor"/>
+        <processor name="EventNumber"/>
+
+        <processor name="DD4hep"/>
+
+        <processor name="MyPrepareRECParticles"/>
+
+        <!--==========TauSpecific======== -->
+        <processor name="MyTauFinder_MC"/>
+
+        <!--processor name="MyEvaluateTauFinder_PFO"/-->        <!--This needs to be changed from source, can't get BField from dd4hep file-->
+
+        <!--=========OUTPUT=========-->
+        <!--processor name="MergeTHits"/-->
+        <!--processor name="AllPFOs"/-->
+        <processor name="MyRecoMCTruthLinker"/>
+        <processor name="LCIOWriter"/>
+
+    </execute>
+
+    <global>
+        <parameter name="LCIOInputFiles">Outputs/output_reco.slcio</parameter>
+        <!-- Limit the number of processed records -->
+        <parameter name="MaxRecordNumber" value="-1" />
+        <parameter name="SkipNEvents" value="0" />
+        <parameter name="SupressCheck" value="false" />
+        <parameter name="Verbosity" options="DEBUG0-9,MESSAGE0-9,WARNING0-9,ERROR0-9,SILENT">MESSAGE </parameter>
+        <parameter name="RandomSeed" value="1234567890" />
+    </global>
+
+    <include ref="subconfigs/Monitoring.xml"/>
+
+    <!--include ref="subconfigs/DD4hep.xml"/-->
+    <processor name="DD4hep" type="InitializeDD4hep">
+        <!--InitializeDD4hep reads a compact xml file and initializes the dd4hep::Detector object-->
+        <!--Name of the DD4hep compact xml file to load-->
+        <parameter name="DD4hepXMLFile" type="string">
+        geom.xml
+        </parameter>
+        <!--Alternate name for EncodingStringParameterName-->
+        <!--If given, the Compact File parameter of that name will be used as argument to LCTrackerCellID::set_encoding_string()-->
+        <parameter name="EncodingStringParameterName" type="string"> GlobalTrackerReadoutID  </parameter>
+        <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+        <parameter name="Verbosity" type="string">MESSAGE </parameter>
+    </processor>
+
+    <processor name="EventNumber" type="Statusmonitor">
+        <parameter name="HowOften" type="int">50 </parameter>
+        <!--parameter name="Verbosity" type="string"> ERROR </parameter-->
+    </processor>
+
+    <!--==========TAUS============-->
+    <processor name="MyPrepareRECParticles" type="PrepareRECParticles">
+        <parameter name="MCCollectionName" value="MCParticle"/>
+        <parameter name="TrackCollectionName" value="SiTracks"/>
+        <parameter name="outputColMC" value="MCParticles_tau"/>
+        <parameter name="outputColTracks" value="Tracks_tau"/>
+    </processor>
+
+    <processor name="MyTauFinder_MC" type="TauFinder">
+    <parameter name="FileName_Signal" value="Outputs/Taus.root"/>
+        <parameter name="inputCol" value="MCParticles_tau"/>
+        <parameter name="TauRecCollection" value="TauRec_MC"/>
+        <parameter name="TauRecLinkCollectionName" value="TauRecLink_MC"/>
+        <parameter name="TauRecRestCollection" value="TauRecRest_MC"/>
+        <parameter name="pt_cut" value="1"/>
+        <parameter name="ptseed" value="10.0"/>
+        <parameter name="D0seed" value="0.5"/>
+        <parameter name="invariant_mass" value="2.0"/>
+        <parameter name="searchConeAngle" value="0.07"/>
+        <parameter name="isolationConeAngle" value="0.03"/>
+        <parameter name="isolationEnergy" value="5.0"/>
+    </processor>
+
+    <!--=========AIDA========-->
+    <processor name="MyAIDAProcessor" type="AIDAProcessor">
+        <!--Processor that handles AIDA files. Creates on directory per processor.  Processors only need to create and fill the histograms, clouds and tuples. Needs to be the first ActiveProcessor-->
+        <!-- compression of output file 0: false >0: true (default) -->
+        <parameter name="Compress" type="int" value="1"/>
+        <!-- filename without extension-->
+        <parameter name="FileName" type="string" value="./AIDAOutputs/output_taufinder"/>
+        <!-- type of output file xml (default) or root ( only OpenScientist)-->
+        <parameter name="FileType" type="string" value="root"/>
+    </processor>
+
+    <processor name="LCIOWriter" type="LCIOOutputProcessor">
+        <parameter name="LCIOOutputFile" type="string"> ./Outputs/output_taufinder.slcio </parameter>
+        <parameter name="FullSubsetCollections" type="StringVec"></parameter>
+        <parameter name="DropCollectionTypes" type="StringVec"></parameter>
+        <parameter name="DropCollectionNames" type="StringVec"></parameter>
+        <parameter name="KeepCollectionNames" type="StringVec"></parameter>
+        <parameter name="LCIOWriteMode" type="string" value="WRITE_NEW"/>
+    </processor>
+
+</marlin>

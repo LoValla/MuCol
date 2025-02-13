@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<marlin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ilcsoft.desy.de/marlin/marlin.xsd">
+
+    <constants>
+    </constants>
+
+    <!-- ======================================================================================================== -->
+    <!-- ======================================================================================================== -->
+    <!-- == List of processors to execute                                                                      == -->
+    <!-- ======================================================================================================== -->
+    <!-- ======================================================================================================== -->
+
+    <execute>
+        <processor name="MyAIDAProcessor"/>
+
+        <!--==========TauSpecific======== -->
+        <processor name="MyTauFinder"/>
+        <!--processor name="MyTaJetClustering"/-->
+
+        <!--processor name="MergeTrackHits"/-->
+        <!--processor name="MergeCalHits"/-->
+        <!--processor name="MergeSimCalHits"/-->
+        <!--processor name="MergePFOs"/-->
+
+        <processor name="MyRecoMCTruthLinker"/>
+        <processor name="LCIOWriter"/>
+    </execute>
+
+    <global>
+        <parameter name="LCIOInputFiles">Outputs/output_reco.slcio</parameter>
+        <!-- Limit the number of processed records -->
+        <parameter name="MaxRecordNumber" value="-1" />
+        <parameter name="SkipNEvents" value="0" />
+        <parameter name="SupressCheck" value="false" />
+        <parameter name="Verbosity" options="DEBUG0-9,MESSAGE0-9,WARNING0-9,ERROR0-9,SILENT">DEBUG </parameter>
+        <parameter name="RandomSeed" value="1234567890" />
+    </global>
+
+    <include ref="subconfigs/Monitoring.xml"/>
+    <include ref="subconfigs/Taus.xml"/>
+
+    <processor name="MyAIDAProcessor" type="AIDAProcessor">
+        <!--Processor that handles AIDA files. Creates on directory per processor.  Processors only need to create and fill the histograms, clouds and tuples. Needs to be the first ActiveProcessor-->
+        <!-- compression of output file 0: false >0: true (default) -->
+        <parameter name="Compress" type="int" value="1"/>
+        <!-- filename without extension-->
+        <parameter name="FileName" type="string" value="AIDAOutputs/output_taufinder"/>
+        <!-- type of output file xml (default) or root ( only OpenScientist)-->
+        <parameter name="FileType" type="string" value="root "/>
+    </processor>
+
+    <!-- LCIO output: keep all collections -->
+    <processor name="LCIOWriter" type="LCIOOutputProcessor">
+        <parameter name="LCIOOutputFile" type="string"> Outputs/output_taufinder.slcio </parameter>
+        <parameter name="FullSubsetCollections" type="StringVec"></parameter>
+        <parameter name="DropCollectionTypes" type="StringVec"></parameter>
+        <parameter name="DropCollectionNames" type="StringVec"></parameter>
+        <parameter name="KeepCollectionNames" type="StringVec"></parameter>
+        <parameter name="LCIOWriteMode" type="string" value="WRITE_NEW"/>
+        <parameter name="Verbosity" type="string">MESSAGE </parameter>
+        <!-- <parameter name="SplitFileSizekB" type="int">996147 </parameter> -->
+    </processor>
+</marlin>

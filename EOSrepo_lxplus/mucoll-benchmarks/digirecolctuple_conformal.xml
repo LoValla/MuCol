@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<marlin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ilcsoft.desy.de/marlin/marlin.xsd">
+
+  <constants>
+  </constants>
+
+  <!-- Defining the execution order of processors -->
+  <execute>
+
+    <!-- ========== Setup ========== -->
+    <processor name="AIDA"/>
+    <processor name="EventNumber" />
+    <processor name="Config" />
+
+    <!-- ========== DD4hep.xml ========== -->
+    <processor name="DD4hep"/>
+
+    <!-- ========== Overlay.xml  ========== -->
+    <if condition="Config.OverlayNone">
+      <processor name="OverlayNone"/>
+    </if>
+    <if condition="Config.OverlayTest">
+      <processor name="OverlayTest"/>
+    </if>
+    <if condition="Config.OverlayTrimmed">
+      <processor name="OverlayTrimmed"/>
+    </if>
+    <if condition="Config.OverlayFull">
+      <processor name="OverlayFull"/>
+    </if>
+
+    <!-- ========== TrackerDigitisation.xml ========== -->
+    <processor name="VXDBarrelDigitiser"/>
+    <processor name="VXDEndcapDigitiser"/>
+    <processor name="ITBarrelDigitiser"/>
+    <processor name="ITEndcapDigitiser"/>
+    <processor name="OTBarrelDigitiser"/>
+    <processor name="OTEndcapDigitiser"/>
+
+    <!-- Including double-layer filtering if any Overlay is applied -->
+    <!-- ========== VertexDoubleLayerFiltering.xml ========== -->
+    <if condition="Config.OverlayNotFalse">
+      <processor name="FilterDL_VXDB"/>
+      <processor name="FilterDL_VXDE"/>
+    </if>
+
+    <!-- ========== CaloDigitisation.xml ============ -->
+    <processor name="CaloDigitiser"/>
+    <!-- ========== MuonDigitisation.xml ============ -->
+    <processor name="MuonDigitiser"/>
+
+    <!-- ========== TrackReconstructionConformal.xml ========== -->
+    <processor name="ConformalTrackingILC"/>
+    <processor name="ClonesAndSplitTracksFinder"/>
+    <processor name="TrackRefit"/>
+    <!--processor name="TrackFiltering"/-->
+
+    <!-- =============== PFOReconstruction.xml ================= -->
+    <processor name="DDMarlinPandora"/>
+
+    <!-- =============== PFOSelection.xml ================= -->
+    <processor name="PFOSelection"/>
+
+    <!-- =============== VertexJet.xml ================ -->
+    <processor name="FastJetProcessor"/>
+
+    <processor name="MyLCTuple"/>
+
+    <!-- ========== Output ========== -->
+    <!--processor name="LCIOWriter"/-->
+
+  </execute>
+
+
+  <global>
+    <parameter name="LCIOInputFiles">output_sim.slcio</parameter>
+    <!-- Limit the number of processed records -->
+    <parameter name="MaxRecordNumber" value="-1" />
+    <parameter name="SkipNEvents" value="0" />
+    <parameter name="SupressCheck" value="false" />
+    <parameter name="Verbosity" options="DEBUG0-9,MESSAGE0-9,WARNING0-9,ERROR0-9,SILENT">MESSAGE </parameter>
+    <parameter name="RandomSeed" value="1234567890" />
+    <!--Which option to use for Tracking: Truth, ConformalPlusExtrapolator, Conformal. Then use, e.g., Config.TrackingTruth in the condition-->
+    <parameter name="Tracking" type="string">Conformal </parameter>
+    <!--Which option to use for VertexUnconstrained: ON, OFF. Then use, e.g., Config.VertexUnconstrainedOFF in the condition-->
+    <parameter name="VertexUnconstrained" type="string">OFF </parameter>
+    <!--Possible values and conditions for option Tracking-->
+    <parameter name="VertexUnconstrainedChoices" type="StringVec">ON OFF  </parameter>
+  </global>
+
+  <processor name="AIDA" type="AIDAProcessor">
+    <!-- Processor that handles AIDA output files
+    Creates a directory per processor with its output objects: histograms, trees.
+    Must be the first ActiveProcessor -->
+    <!-- compression of output file 0: false >0: true (default) -->
+    <parameter name="Compress" type="int" value="1"/>
+    <!-- filename (without extension) -->
+    <parameter name="FileName" type="string" value="output_lctuple"/>
+    <!-- type of output file xml (default) or root ( only OpenScientist) -->
+    <parameter name="FileType" type="string" value="root "/>
+  </processor>
+
+
+  <!-- Including processor definitions from external files -->
+  <include ref="digitisation/marlin/subconfigs/DD4hep.xml"/>
+  <include ref="digitisation/marlin/subconfigs/Overlay.xml"/>
+  <include ref="digitisation/marlin/subconfigs/TrackerDigitisation.xml"/>
+  <include ref="digitisation/marlin/subconfigs/CaloDigitisation_HighThresh.xml"/>
+  <include ref="digitisation/marlin/subconfigs/MuonDigitisation.xml"/>
+  <include ref="digitisation/marlin/subconfigs/VertexDoubleLayerFiltering.xml"/>
+  <include ref="reconstruction/marlin/subconfigs/PFOReconstruction_nofilter.xml"/>
+  <include ref="reconstruction/marlin/subconfigs/PFOSelection.xml"/>
+  <include ref="reconstruction/marlin/subconfigs/VertexJet.xml"/>
+  <include ref="reconstruction/marlin/subconfigs/TrackReconstructionConformal.xml"/>
+  <include ref="reconstruction/marlin/subconfigs/MergeCollections.xml"/>
+  <include ref="reconstruction/marlin/subconfigs/Monitoring_nofilter.xml"/>
+  <include ref="analysis/lctuple/lctuple_steer_nofilter.xml"/>
+  <include ref="analysis/trackperf/trackperf_nofilter.xml"/>
+
+  <!-- Defining other processors directly in the steering file -->
+  <processor name="Config" type="CLICRecoConfig">    <!-- Defining other processors directly in the steering file -->
+
+    <!--Which option to use for Tracking: Truth, ConformalPlusExtrapolator, Conformal. Then use, e.g., Config.TrackingTruth in the condition-->
+    <parameter name="Tracking" type="string">Conformal </parameter>
+    <!--Possible values and conditions for option Tracking-->
+    <parameter name="TrackingChoices" type="StringVec">Truth Conformal  </parameter>
+    <parameter name="Verbosity" options="DEBUG0-9,MESSAGE0-9,WARNING0-9,ERROR0-9,SILENT"> MESSAGE  </parameter>
+    <!--Which option to use for Overlay: False, BIB. Then use, e.g., Config.OverlayFalse in the condition-->
+    <parameter name="Overlay" type="string">False</parameter>
+    <!--Possible values and conditions for option Overlay-->
+    <parameter name="OverlayChoices" type="StringVec">False None Test Trimmed Full</parameter>
+    <!--Which option to use for VertexUnconstrained: ON, OFF. Then use, e.g., Config.VertexUnconstrainedOFF in the condition-->
+    <parameter name="VertexUnconstrained" type="string">OFF </parameter>
+    <!--Possible values and conditions for option Tracking-->
+    <parameter name="VertexUnconstrainedChoices" type="StringVec">ON OFF  </parameter>
+    <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+  </processor>
+
+  <processor name="EventNumber" type="Statusmonitor">
+    <parameter name="HowOften" type="int">1000 </parameter>
+    <parameter name="Verbosity" type="string"> MESSAGE </parameter>
+  </processor>
+
+  <processor name="MyLCTuple" type="LCTuple">
+    <!--LCTuple creates a ROOT TTRee with a column wise ntuple from LCIO collections ....-->
+    <parameter name="FullSubsetCollections" type="StringVec"> EfficientMCParticles InefficientMCParticles </parameter>
+    <!--Name of the CalorimeterHit collection-->
+    <parameter name="CalorimeterHitCollection" type="string" lcioInType="CalorimeterHit"> HCALBarrelHits </parameter>
+    <!--Name of the Cluster collection-->
+    <parameter name="ClusterCollection" type="string" lcioInType="Cluster">PandoraClusters</parameter>
+    <!--Name of the IsoLep collection-->
+    <parameter name="IsoLepCollection" type="string" lcioInType="ReconstructedParticle"></parameter>
+    <!--Name of the Jet collection-->
+    <parameter name="JetCollection" type="string" lcioInType="ReconstructedParticle">RefinedVertexJets</parameter>
+    <!--Switch to write out extra parameters calculated using information from Jet Finder-->
+    <parameter name="JetCollectionExtraParameters" type="bool">false </parameter>
+    <!--Switch to write out jet parameters coming from LCFIPlus tagging processor-->
+    <parameter name="JetCollectionTaggingParameters" type="bool">false </parameter>
+    <!--Names of LCRelation collections - need parallel prefix names in RelPrefixes-->
+    <parameter name="LCRelationCollections" type="StringVec" lcioInType="LCRelation">
+      RecoMCTruthLink 
+    </parameter>
+    <!-- Names of prefixes for variables from LCRelation collections - needs to be parallel to LCRelationCollections (one prefix per collection)-->
+    <parameter name="LCRelationPrefixes" type="StringVec">  
+      r2m  
+    </parameter>
+    <!--Names of LCRelation collections of PFO-->
+    <parameter name="LCRelationwithPFOCollections" type="string" lcioInType="LCRelation"></parameter>
+    <!--Name of the MCParticle collection-->
+    <parameter name="MCParticleCollection" type="string" lcioInType="MCParticle"> MCParticle </parameter>
+    <parameter name="MCParticleNotReco" type="string" lcioOutType="MCParticle"></parameter>
+    <!--Name of the MCParticle collection where the overlay is removed-->
+    <!--parameter name="MCParticleRemoveOverlayCollection" type="string" lcioInType="MCParticle"> </parameter-->
+    <!--Name of the PFO collection with Relation-->
+    <!--parameter name="PFOwithRelationCollection" type="string" lcioInType="ReconstructedParticle"> </parameter-->
+    <!--Name of the ReconstructedParticle collection-->
+    <parameter name="RecoParticleCollection" type="string" lcioInType="ReconstructedParticle"> PandoraPFOs </parameter>
+    <!--Name of the SimCalorimeterHit collection-->
+    <parameter name="SimCalorimeterHitCollection" type="string" lcioInType="SimCalorimeterHit"></parameter>
+    <!--Name of the SimTrackerHit collection-->
+    <parameter name="SimTrackerHitCollection" type="string" lcioInType="SimTrackerHit"></parameter>
+    <!--Name of the Track collection-->
+    <parameter name="TrackCollection" type="string" lcioInType="Track">SiTracks_Filtered </parameter>
+    <!--Name of the TrackerHit collection-->
+    <parameter name="TrackerHitCollection" type="string" lcioInType="TrackerHit"></parameter>
+    <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+    <parameter name="Verbosity" type="string">DEBUG </parameter>
+    <!--Name of the Vertex collection-->
+    <parameter name="VertexCollection" type="string" lcioInType="Vertex"> PrimaryVertices </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteCalorimeterHitCollectionParameters" type="bool">false </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteClusterCollectionParameters" type="bool">false </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteIsoLepCollectionParameters" type="bool">false </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteJetCollectionParameters" type="bool">false </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteMCParticleCollectionParameters" type="bool">true </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteRecoParticleCollectionParameters" type="bool">true </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteSimCalorimeterHitCollectionParameters" type="bool">false</parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteSimTrackerHitCollectionParameters" type="bool">false </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteTrackCollectionParameters" type="bool">true </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteTrackerHitCollectionParameters" type="bool">false </parameter>
+    <!--Switch to write out collection parameters-->
+    <parameter name="WriteVertexCollectionParameters" type="bool">false </parameter>
+  </processor>
+
+  <!-- LCIO output: keep all collections -->
+  <processor name="LCIOWriter" type="LCIOOutputProcessor">
+    <parameter name="LCIOOutputFile" type="string"> Outputs/output_reco.slcio </parameter>
+    <parameter name="FullSubsetCollections" type="StringVec"></parameter>
+    <parameter name="DropCollectionTypes" type="StringVec"></parameter>
+    <parameter name="DropCollectionNames" type="StringVec"></parameter>
+    <parameter name="KeepCollectionNames" type="StringVec"></parameter>
+    <parameter name="LCIOWriteMode" type="string" value="WRITE_NEW"/>
+    <parameter name="Verbosity" type="string">WARNING </parameter>
+    <!-- <parameter name="SplitFileSizekB" type="int">996147 </parameter> -->
+  </processor>
+
+
+</marlin>
+

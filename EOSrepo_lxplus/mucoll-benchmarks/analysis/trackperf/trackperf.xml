@@ -1,0 +1,22 @@
+    <processor name="MyTrackTruth" type="TrackTruthProc">
+    <parameter name="TrackCollection" type="string" lcioInType="Track">SiTracks_Filtered</parameter>
+    <parameter name="MCParticleCollection" type="string" lcioInType="MCParticle">MCParticle</parameter>
+    <parameter name="TrackerHit2SimTrackerHitRelationName" type="StringVec" lcioInType="LCRelation">
+      VXDBarrelHitsRelations
+      VXDEndcapHitsRelations
+      ITBarrelHitsRelations
+      ITEndcapHitsRelations
+      OTBarrelHitsRelations
+      OTEndcapHitsRelations
+    </parameter>
+    <parameter name="Particle2TrackRelationName" type="string" lcioOutType="LCRelation">MCParticle_SiTracks</parameter>
+  </processor>
+
+  <processor name="MyTrackPerf" type="TrackPerfHistProc">
+    <!--Name of the MCParticle collection-->
+    <parameter name="MCParticleCollection" type="string" lcioInType="MCParticle">MCParticle</parameter>
+    <!--Name of the Track collection-->
+    <parameter name="TrackCollection" type="string" lcioInType="Track">SiTracks_Filtered</parameter>
+    <!--Relations-->
+    <parameter name="MCTrackRelationCollection" type="string" lcioInType="LCRelation">MCParticle_SiTracks</parameter>
+  </processor>
