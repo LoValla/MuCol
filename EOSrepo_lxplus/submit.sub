@@ -1,0 +1,12 @@
+executable = runfile.sh
+arguments = $(ClusterId) $(ProcId)
+output = output/$(ClusterId).$(ProcId).out
+error = error/$(ClusterId).$(ProcId).err
+log = log/$(ClusterId).log
+transfer_input_files = EOSrepo/pigun_generator.py
+transfer_output_remaps  = "output_lctuple.root=EOSrepo/output_lctuple$(ProcId).root"
+max_transfer_output_mb = -1
+max_transfer_input_mb = -1
+request_cpus = 2
++JobFlavour = "tomorrow"
+queue 220
