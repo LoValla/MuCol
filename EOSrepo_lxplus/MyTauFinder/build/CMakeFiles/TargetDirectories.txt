@@ -1,0 +1,3 @@
+/eos/user/l/lvalla/MuColl/MyTauFinder/build/CMakeFiles/MyTauFinder.dir
+/eos/user/l/lvalla/MuColl/MyTauFinder/build/CMakeFiles/edit_cache.dir
+/eos/user/l/lvalla/MuColl/MyTauFinder/build/CMakeFiles/rebuild_cache.dir
