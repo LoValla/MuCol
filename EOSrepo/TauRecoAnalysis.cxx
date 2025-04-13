@@ -1,3 +1,5 @@
+//analysis and plots of the reconstructed taus, including computation of energy corrections
+
 #include <fstream>
 #include <iostream>
 

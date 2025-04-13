@@ -63,23 +63,23 @@ void EfficiencyPlotter() {
     // Retrieve histograms from both directories
 
     TEfficiency *eff1 = (TEfficiency *)inputFile->Get(
-        Form("tauguns_notrackfiltering/%s", efficiencyNames[i]));
+        Form("tauguns/%s", efficiencyNames[i]));
     TEfficiency *eff2 = (TEfficiency *)inputFile->Get(
-        Form("piguns_notrackfiltering/%s", efficiencyNames[i]));
+        Form("piguns/%s", efficiencyNames[i]));
 
     TH1F *hist1 = ConvertTEfficiencyToTH1(eff1);
     TH1F *hist2 = ConvertTEfficiencyToTH1(eff2);
 
     if (!hist1) {
       std::cerr
-          << "Error: Could not retrieve histogram tauguns_notrackfiltering/"
+          << "Error: Could not retrieve histogram tauguns/"
           << efficiencyNames[i] << std::endl;
       continue;
     }
 
     if (!hist2) {
       std::cerr
-          << "Error: Could not retrieve histogram piguns_notrackfiltering/"
+          << "Error: Could not retrieve histogram piguns/"
           << efficiencyNames[i] << std::endl;
       continue;
     }
@@ -206,23 +206,23 @@ void EfficiencyPlotter0N() {
     // Retrieve histograms from both directories
 
     TEfficiency *eff1 = (TEfficiency *)inputFile->Get(
-        Form("tauguns_notrackfiltering_0N/%s", efficiencyNames[i]));
+        Form("tauguns_0N/%s", efficiencyNames[i]));
     TEfficiency *eff2 = (TEfficiency *)inputFile->Get(
-        Form("piguns_notrackfiltering/%s", efficiencyNames[i]));
+        Form("piguns/%s", efficiencyNames[i]));
 
     TH1F *hist1 = ConvertTEfficiencyToTH1(eff1);
     TH1F *hist2 = ConvertTEfficiencyToTH1(eff2);
 
     if (!hist1) {
       std::cerr
-          << "Error: Could not retrieve histogram tauguns_notrackfiltering/"
+          << "Error: Could not retrieve histogram tauguns/"
           << efficiencyNames[i] << std::endl;
       continue;
     }
 
     if (!hist2) {
       std::cerr
-          << "Error: Could not retrieve histogram piguns_notrackfiltering/"
+          << "Error: Could not retrieve histogram piguns/"
           << efficiencyNames[i] << std::endl;
       continue;
     }
@@ -451,7 +451,7 @@ void EfficiencyvsTrackPlotter() {
 
 int PlotEfficienciesRatio() {
   EfficiencyPlotter();
-  EfficiencyPlotter0N();
+  //EfficiencyPlotter0N();
 
   EfficiencyvsTrackPlotter();
   return 0;

@@ -1,3 +1,5 @@
+//Analysis of the tau decay mode, both MC-level and reconstructed
+
 #include <fstream>
 #include <iostream>
 

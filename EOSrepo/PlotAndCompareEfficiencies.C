@@ -40,7 +40,7 @@ void PlotAndCompareEfficiencies() {
       TEfficiency *eff1 = (TEfficiency *)inputFile->Get(
           Form("%s/%s", dirName, efficiencyNames[i]));
       TEfficiency *eff2 = (TEfficiency *)inputFile->Get(
-          Form("piguns_highthreshes_notrackfiltering/%s", efficiencyNames[i]));
+          Form("piguns/%s", efficiencyNames[i]));
 
       if (!eff1 || !eff2) {
         std::cerr << "Error: Could not retrieve TEfficiency objects "
@@ -207,11 +207,11 @@ void PlotAndCompareEfficiencies() {
   };
 
   // Process "EvsEta" histograms with specific X-axis title and legend labels
-  processHistograms("piguns_notrackfiltering", efficiencyEvsEta, numEvsEta,
+  processHistograms("piguns", efficiencyEvsEta, numEvsEta,
                     "p_{T, mc}", "250 keV HCAL", "2 MeV HCAL");
 
   // Process "EtavsE" histograms with specific X-axis title and legend labels
-  processHistograms("piguns_notrackfiltering", efficiencyEtavsE, numEtavsE,
+  processHistograms("piguns", efficiencyEtavsE, numEtavsE,
                     "|#eta_{mc}|", "250 keV HCAL", "2 MeV HCAL");
 
   // Close the ROOT file
