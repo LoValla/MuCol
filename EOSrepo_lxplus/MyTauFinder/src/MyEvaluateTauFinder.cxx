@@ -590,8 +590,8 @@ void MyEvaluateTauFinder::LoopDaughters(MCParticle *particle, double &Evis,
       }
     }
     // THIS WAS CHANGED - MAYBE WE ONLY HAVE TO LOOP OVER THE FINAL PARTICLES
-    // WITHOUT DAUGHTERS, THUS PUTTING THESE BEFORE THE IF ABOVE? if
-    // (daughter->getDaughters().size()) LoopDaughters(daughter, Evis, ptvis,
+    // WITHOUT DAUGHTERS, THUS PUTTING THESE LINES BEFORE THE "IF" LOOP ABOVE?
+    // if (daughter->getDaughters().size()) LoopDaughters(daughter, Evis, ptvis,
     // pvis);
   }
 }
