@@ -11,13 +11,13 @@ ddsim --inputFile="piguns.slcio" \
 --steeringFile="steer_sim.py"
 
 
-#ln -s ../mucoll-benchmarks/reconstruction/marlin/PandoraSettings ./
+ln -s ../mucoll-benchmarks/reconstruction/marlin/PandoraSettings ./
 ACTS_PATH=$(echo $MARLIN_DLL | tr ':' '\n' | grep actstracking | sed "s:/lib.*::")
 
 export MARLIN_DLL=$MARLIN_DLL:\
 /eos/user/l/lvalla/MuColl/TrackPerf/build/libTrackPerf.so
 
-mkdir ./Outputs
+#mkdir ./Outputs
 
 Marlin ../mucoll-benchmarks/digirecolctuple.xml \
 --global.LCIOInputFiles="Outputs/output_sim.slcio" \

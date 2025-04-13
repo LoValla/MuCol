@@ -1,0 +1,3 @@
+To produce the pi guns samples, run the runfile.sh file from within the piguns folder, by adjusting the Marlin configuration path in the file.
+runfile.sh uses the mucoll-benchmark settings to perform pion guns simulations, digitisation and reconstruction, producing a .root file.
+Then, run the rewrite.C to produce a new .root file that is compatible with the lctuplePiAnalysis file, which has to be run to produce the final histograms.

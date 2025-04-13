@@ -3,11 +3,11 @@
 ln -s /cvmfs/muoncollider.cern.ch/release/2.8-patch2/setup.sh ./
 source setup.sh
 
-python EOSrepo/pigun_generator.py \
---output="piguns.slcio" \
+python EOSrepo/taugun_generator.py \
+--output="tauguns.slcio" \
 --numberOfEvents=500
 
-ddsim --inputFile="piguns.slcio" \
+ddsim --inputFile="tauguns.slcio" \
 --outputFile="output_sim.slcio" \
 --steeringFile="EOSrepo/steer_sim.py"
 
