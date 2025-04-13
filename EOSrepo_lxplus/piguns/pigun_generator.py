@@ -43,7 +43,7 @@ random.seed()
 
 energies = []
 
-genstat = 1 #change based on your configuration
+genstat = 1  # change based on your configuration
 pdg = 211
 mass = 0.13957  # pion mass
 charge = +1
@@ -64,20 +64,20 @@ for j in range(0, nevt):
     evt.setEventNumber(j)
 
     evt.addCollection(col, "MCParticle")
-    
+
     # --------- generate particle properties ----------
-    
-    E = random.uniform(5., 300.) #flat in E between 5 and 300 GeV
 
-    phi = random.random() * np.pi * 2.0  # flat in phi
-    
-    theta = random.uniform(theta_min, theta_max) # flat in theta
+    pt = random.uniform(5.0, 250.0)  # flat in pt between 5 and 250 GeV
 
-    p = np.sqrt(E**2 - mass**2)
+    phi = random.uniform(0., 2. * np.pi)  # flat in phi
 
-    px = p * np.sin(theta) * np.cos(phi)
-    py = p * np.sin(theta) * np.sin(phi)
-    pz = p * np.cos(theta)
+    theta = random.uniform(theta_min, theta_max)  # flat in eta
+
+    # p = np.sqrt(E**2 - mass**2)
+
+    px = pt * np.cos(phi)
+    py = pt * np.sin(phi)
+    pz = pt / np.tan(theta)
 
     momentum = array("f", [px, py, pz])
 

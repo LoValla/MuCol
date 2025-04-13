@@ -40,7 +40,7 @@ SIM.steeringFile = None
 ## FourVector of translation for the Smearing of the Vertex position: x y z t
 SIM.vertexOffset = [0.0, 0.0, 0.0, 0.0]
 ## FourVector of the Sigma for the Smearing of the Vertex position: x y z t
-SIM.vertexSigma = [0.001 * mm, 0.001 * mm, 0.001 * mm, 0.001 * mm]
+SIM.vertexSigma = [0., 0., 0., 0.]
 
 ##  set the default tracker action
 SIM.action.tracker = "Geant4TrackerWeightedAction"

@@ -15,6 +15,29 @@
 #include "TStyle.h"
 #include "TTree.h"
 
+void plot_boundaries(TCanvas *canvas = nullptr) {
+  TLine *line_06 = new TLine(0.6, 0., 0.6, 1.);
+  TLine *line_11 = new TLine(1.1, 0., 1.1, 1.);
+  TLine *line_2 = new TLine(0.8, 0., 0.8, 1.);
+  TLine *line_21 = new TLine(2.1, 0., 2.1, 1.);
+  line_06->SetLineColor(kRed);
+  line_11->SetLineColor(kRed);
+  line_2->SetLineColor(kRed);
+  line_21->SetLineColor(kRed);
+  line_06->SetLineStyle(1);
+  line_11->SetLineStyle(1);
+  line_2->SetLineStyle(1);
+  line_21->SetLineStyle(1);
+  line_06->SetLineWidth(3);
+  line_11->SetLineWidth(3);
+  line_2->SetLineWidth(3);
+  line_21->SetLineWidth(3);
+  line_06->Draw();
+  line_11->Draw();
+  line_2->Draw();
+  line_21->Draw();
+}
+
 // --- Histogram declaration
 
 TH1F *h_EvsEta0_mcAll, *h_EvsEta1_mcAll, *h_EvsEta2_mcAll, *h_EvsEta3_mcAll,
@@ -40,14 +63,22 @@ TEfficiency *eff_trk_EvsEta0, *eff_trk_EvsEta1, *eff_trk_EvsEta2,
 
 TGraph *g_pt_pions, *g_pt_neutrons;
 
+TH1F *h_deltaR_tsmc, *h_deltaR_tscl, *h_deltaR_tscl_pi, *h_deltaR_tscl_neu,
+    *h_deltaR_tscl_others;
+TH1I *h_ncl, *h_nts, *h_mcpstable;
+TH1I *h_recopdg;
+
+TH1F *h_mc_eta;
+TH1F *h_mc_pt;
+
 // ===========================================================================
 
-void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
-  const TString plotsfolder = "plots"; // plots folder name
+void lctuplePiAnalysis(const TString filename = "output_lctuple.root") {
+  const TString plotsfolder = "plots"; // plots or plotsTracks
 
   double etamax = 2.5;
   double etamin = 0.;
-  int nbins_eta = 100;
+  int nbins_eta = 20;
   double Emax = 300.;
   double Emin = 1.;
   int nbins_E = 20;
@@ -75,124 +106,173 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
 
   // Histogram initialization
   {
-    h_EvsEta0_mcAll =
-        new TH1F("h_EvsEta0_mcAll",
-                 "Pion E events (All, 0 < |#eta| < 0.5); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
-    h_EvsEta1_mcAll =
-        new TH1F("h_EvsEta1_mcAll",
-                 "Pion events (All, 0.5 < |#eta| < 1); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
-    h_EvsEta2_mcAll =
-        new TH1F("h_EvsEta2_mcAll",
-                 "Pion events (All, 1 < |#eta| < 1.5); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
-    h_EvsEta3_mcAll =
-        new TH1F("h_EvsEta3_mcAll",
-                 "Pion events (All, 1.5 < |#eta| < 2); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
-    h_EvsEta4_mcAll =
-        new TH1F("h_EvsEta4_mcAll",
-                 "Pion events (All, 2 < |#eta| < 2.5); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
+    h_EvsEta0_mcAll = new TH1F(
+        "h_EvsEta0_mcAll",
+        "Pion events (All, 0 < |#eta| < 0.5); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
+    h_EvsEta1_mcAll = new TH1F(
+        "h_EvsEta1_mcAll",
+        "Pion events (All, 0.5 < |#eta| < 1); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
+    h_EvsEta2_mcAll = new TH1F(
+        "h_EvsEta2_mcAll",
+        "Pion events (All, 1 < |#eta| < 1.5); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
+    h_EvsEta3_mcAll = new TH1F(
+        "h_EvsEta3_mcAll",
+        "Pion events (All, 1.5 < |#eta| < 2); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
+    h_EvsEta4_mcAll = new TH1F(
+        "h_EvsEta4_mcAll",
+        "Pion events (All, 2 < |#eta| < 2.5); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
 
-    h_EvsEta0_Reco =
-        new TH1F("h_EvsEta0_Reco",
-                 "Pion events (Hits, 0 < |#eta| < 0.5); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
-    h_EvsEta1_Reco =
-        new TH1F("h_EvsEta1_Reco",
-                 "Pion events (Hits, 0.5 < |#eta| < 1); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
-    h_EvsEta2_Reco =
-        new TH1F("h_EvsEta2_Reco",
-                 "Pion events (Hits, 1 < |#eta| < 1.5); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
-    h_EvsEta3_Reco =
-        new TH1F("h_EvsEta3_Reco",
-                 "Pion events (Hits, 1.5 < |#eta| < 2); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
-    h_EvsEta4_Reco =
-        new TH1F("h_EvsEta4_Reco",
-                 "Pion events (Hits, 2 < |#eta| < 2.5); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
-    h_EvsEta0_Trk =
-        new TH1F("h_EvsEta0_Trk",
-                 "Pion events (Hits, 0 < |#eta| < 0.5); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
-    h_EvsEta1_Trk =
-        new TH1F("h_EvsEta1_Trk",
-                 "Pion events (Hits, 0.5 < |#eta| < 1); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
-    h_EvsEta2_Trk =
-        new TH1F("h_EvsEta2_Trk",
-                 "Pion events (Hits, 1 < |#eta| < 1.5); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
-    h_EvsEta3_Trk =
-        new TH1F("h_EvsEta3_Trk",
-                 "Pion events (Hits, 1.5 < |#eta| < 2); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
-    h_EvsEta4_Trk =
-        new TH1F("h_EvsEta4_Trk",
-                 "Pion events (Hits, 2 < |#eta| < 2.5); E_{gen} [GeV]; events",
-                 nlogbins_E, logbin_edges);
+    h_EvsEta0_Reco = new TH1F(
+        "h_EvsEta0_Reco",
+        "Pion events (Hits, 0 < |#eta| < 0.5); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
+    h_EvsEta1_Reco = new TH1F(
+        "h_EvsEta1_Reco",
+        "Pion events (Hits, 0.5 < |#eta| < 1); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
+    h_EvsEta2_Reco = new TH1F(
+        "h_EvsEta2_Reco",
+        "Pion events (Hits, 1 < |#eta| < 1.5); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
+    h_EvsEta3_Reco = new TH1F(
+        "h_EvsEta3_Reco",
+        "Pion events (Hits, 1.5 < |#eta| < 2); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
+    h_EvsEta4_Reco = new TH1F(
+        "h_EvsEta4_Reco",
+        "Pion events (Hits, 2 < |#eta| < 2.5); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
+    h_EvsEta0_Trk = new TH1F(
+        "h_EvsEta0_Trk",
+        "Pion events (Hits, 0 < |#eta| < 0.5); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
+    h_EvsEta1_Trk = new TH1F(
+        "h_EvsEta1_Trk",
+        "Pion events (Hits, 0.5 < |#eta| < 1); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
+    h_EvsEta2_Trk = new TH1F(
+        "h_EvsEta2_Trk",
+        "Pion events (Hits, 1 < |#eta| < 1.5); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
+    h_EvsEta3_Trk = new TH1F(
+        "h_EvsEta3_Trk",
+        "Pion events (Hits, 1.5 < |#eta| < 2); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
+    h_EvsEta4_Trk = new TH1F(
+        "h_EvsEta4_Trk",
+        "Pion events (Hits, 2 < |#eta| < 2.5); p_{T, gen} [GeV/c]; events",
+        nlogbins_E, logbin_edges);
 
     h_EtavsE0_mcAll =
-        new TH1F("h_EtavsE0_mcAll", "Pion events (All, E0); |#eta|; events",
+        new TH1F("h_EtavsE0_mcAll", "Pion events (All, p_{T}0); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE1_mcAll =
-        new TH1F("h_EtavsE1_mcAll", "Pion events (All, E1); |#eta|; events",
+        new TH1F("h_EtavsE1_mcAll", "Pion events (All, p_{T}1); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE2_mcAll =
-        new TH1F("h_EtavsE2_mcAll", "Pion events (All, E2); |#eta|; events",
+        new TH1F("h_EtavsE2_mcAll", "Pion events (All, p_{T}2); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE3_mcAll =
-        new TH1F("h_EtavsE3_mcAll", "Pion events (All, E3); |#eta|; events",
+        new TH1F("h_EtavsE3_mcAll", "Pion events (All, p_{T}3); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE4_mcAll =
-        new TH1F("h_EtavsE4_mcAll", "Pion events (All, E4); |#eta|; events",
+        new TH1F("h_EtavsE4_mcAll", "Pion events (All, p_{T}4); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE5_mcAll =
-        new TH1F("h_EtavsE5_mcAll", "Pion events (All, E5); |#eta|; events",
+        new TH1F("h_EtavsE5_mcAll", "Pion events (All, p_{T}5); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE0_Reco =
-        new TH1F("h_EtavsE0_Reco", "Pion events (Hits, E0); |#eta|; events",
+        new TH1F("h_EtavsE0_Reco", "Pion events (Hits, p_{T}0); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE1_Reco =
-        new TH1F("h_EtavsE1_Reco", "Pion events (Hits, E1); |#eta|; events",
+        new TH1F("h_EtavsE1_Reco", "Pion events (Hits, p_{T}1); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE2_Reco =
-        new TH1F("h_EtavsE2_Reco", "Pion events (Hits, E2); |#eta|; events",
+        new TH1F("h_EtavsE2_Reco", "Pion events (Hits, p_{T}2); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE3_Reco =
-        new TH1F("h_EtavsE3_Reco", "Pion events (Hits, E3); |#eta|; events",
+        new TH1F("h_EtavsE3_Reco", "Pion events (Hits, p_{T}3); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE4_Reco =
-        new TH1F("h_EtavsE4_Reco", "Pion events (Hits, E4); |#eta|; events",
+        new TH1F("h_EtavsE4_Reco", "Pion events (Hits, p_{T}4); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE5_Reco =
-        new TH1F("h_EtavsE5_Reco", "Pion events (Hits, E5); |#eta|; events",
+        new TH1F("h_EtavsE5_Reco", "Pion events (Hits, p_{T}5); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE0_Trk =
-        new TH1F("h_EtavsE0_Trk", "Pion events (Hits, E0); |#eta|; events",
+        new TH1F("h_EtavsE0_Trk", "Pion events (Hits, p_{T}0); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE1_Trk =
-        new TH1F("h_EtavsE1_Trk", "Pion events (Hits, E1); |#eta|; events",
+        new TH1F("h_EtavsE1_Trk", "Pion events (Hits, p_{T}1); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE2_Trk =
-        new TH1F("h_EtavsE2_Trk", "Pion events (Hits, E2); |#eta|; events",
+        new TH1F("h_EtavsE2_Trk", "Pion events (Hits, p_{T}2); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE3_Trk =
-        new TH1F("h_EtavsE3_Trk", "Pion events (Hits, E3); |#eta|; events",
+        new TH1F("h_EtavsE3_Trk", "Pion events (Hits, p_{T}3); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE4_Trk =
-        new TH1F("h_EtavsE4_Trk", "Pion events (Hits, E4); |#eta|; events",
+        new TH1F("h_EtavsE4_Trk", "Pion events (Hits, p_{T}4); |#eta|; events",
                  nbins_eta, etamin, etamax);
     h_EtavsE5_Trk =
-        new TH1F("h_EtavsE5_Trk", "Pion events (Hits, E5); |#eta|; events",
+        new TH1F("h_EtavsE5_Trk", "Pion events (Hits, p_{T}5); |#eta|; events",
                  nbins_eta, etamin, etamax);
     g_pt_pions = new TGraph();
     g_pt_neutrons = new TGraph();
+
+    h_mc_eta = new TH1F("h_mc_eta", "h_mc_eta; |#eta|; events", nbins_eta,
+                        etamin, etamax);
+    h_mc_pt = new TH1F("h_mc_pt", "h_mc_pt; |pt|; events", 30, 0., 300.);
+
+    int nbins_deltaR = 40;
+    /*    float min_deltaR = 1.e-6;
+    float max_deltaR = 0.3;
+    float deltaR_edges[31];
+
+    for (int i = 0; i <= nbins_deltaR; i++) {
+      deltaR_edges[i] =
+          pow(10, TMath::Log10(min_deltaR) +
+                      (TMath::Log10(max_deltaR) - TMath::Log10(min_deltaR)) /
+                          double(nbins_deltaR) * double(i));
+    }*/
+
+    float max_deltaR = 0.3;
+
+    h_deltaR_tsmc =
+        new TH1F("h_deltaR_tsmc",
+                 "#DeltaR between ts (IP) and MC particle; #DeltaR; events",
+                 nbins_deltaR, 0., max_deltaR);
+    h_deltaR_tscl =
+        new TH1F("h_deltaR_tscl",
+                 "#DeltaR between ts (cal) and Cluster; #DeltaR; events",
+                 nbins_deltaR, 0., max_deltaR);
+    h_deltaR_tscl_pi = new TH1F("h_deltaR_tscl_pi",
+                                "#DeltaR between ts (cal) and Cluster - only "
+                                "#pi^{#pm} reconstructed; #DeltaR; events",
+                                nbins_deltaR, 0., max_deltaR);
+    h_deltaR_tscl_neu = new TH1F("h_deltaR_tscl_neu",
+                                 "#DeltaR between ts (cal) and Cluster - only "
+                                 "n reconstructed; #DeltaR; events",
+                                 nbins_deltaR, 0., max_deltaR);
+    h_deltaR_tscl_others = new TH1F(
+        "h_deltaR_tscl_others",
+        "#DeltaR between ts (cal) and Cluster - others; #DeltaR; events",
+        nbins_deltaR, 0., max_deltaR);
+    h_ncl = new TH1I("h_ncl", "Number of Clusters; Number of clusters; events",
+                     9, -0.5, 8.5);
+    h_nts = new TH1I("h_nts", "Number of Tracks; Number of tracks; events", 5,
+                     -0.5, 4.5);
+    h_mcpstable = new TH1I(
+        "h_mcpstable", "Number of stable MC particles; Number of prts; events",
+        9, -0.5, 10.5);
+    h_recopdg =
+        new TH1I("h_recopdg", "Pdg of reconstructed particles; ; events", 11,
+                 -0.5, 10.5);
   }
 
   //  --- Open the ntuple file and get the tree
@@ -255,10 +335,10 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
 
   // track variables
   int ts_idx, n_trst;
-  float *ts_phi = new float[10000];
-  float *ts_tnl = new float[10000];
-  float *ts_ome = new float[40000];
-  float *ts_cov = new float[150000];
+  float *ts_phi = new float[100000];
+  float *ts_tnl = new float[100000];
+  float *ts_ome = new float[400000];
+  float *ts_cov = new float[1500000];
   myLCTuple->SetBranchAddress("ntrst", &n_trst);
   myLCTuple->SetBranchAddress("trsip", &ts_idx);
   myLCTuple->SetBranchAddress("tsphi", ts_phi);
@@ -273,11 +353,30 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
   float *ts_p = new float[10000];
   float *ts_punc = new float[10000];
 
+  // Pandora Cluster
+  int n_cl;
+  float *cl_x = new float[100000];
+  float *cl_y = new float[100000];
+  float *cl_z = new float[100000];
+  float *cl_ene = new float[100000];
+  float *cl_phi = new float[100000];
+  float *cl_eta = new float[100000];
+  myLCTuple->SetBranchAddress("nclu", &n_cl);
+  myLCTuple->SetBranchAddress("clpox", cl_x);
+  myLCTuple->SetBranchAddress("clpoy", cl_y);
+  myLCTuple->SetBranchAddress("clpoz", cl_z);
+  myLCTuple->SetBranchAddress("clene", cl_ene);
+
   int n_mcp_stable = 0;
 
   const long int nEntries = myLCTuple->GetEntries();
   for (int ientry = 0; ientry < nEntries; ++ientry) {
+    int ok_track = 0;
+
     myLCTuple->GetEntry(ientry);
+
+    h_ncl->Fill(n_cl);
+    h_nts->Fill(n_trst / 4);
 
     n_mcp_stable = 0;
 
@@ -298,31 +397,36 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       mcPdg[n_mcp_stable] = mcPdg_[i];
 
       if (mcEtaAbs[n_mcp_stable] >= 0. && mcEtaAbs[n_mcp_stable] <= 0.5)
-        h_EvsEta0_mcAll->Fill(mcEne[n_mcp_stable]);
+        h_EvsEta0_mcAll->Fill(mcPt[n_mcp_stable]);
       else if (mcEtaAbs[n_mcp_stable] >= 0.5 && mcEtaAbs[n_mcp_stable] <= 1.)
-        h_EvsEta1_mcAll->Fill(mcEne[n_mcp_stable]);
+        h_EvsEta1_mcAll->Fill(mcPt[n_mcp_stable]);
       else if (mcEtaAbs[n_mcp_stable] >= 1. && mcEtaAbs[n_mcp_stable] <= 1.5)
-        h_EvsEta2_mcAll->Fill(mcEne[n_mcp_stable]);
+        h_EvsEta2_mcAll->Fill(mcPt[n_mcp_stable]);
       else if (mcEtaAbs[n_mcp_stable] >= 1.5 && mcEtaAbs[n_mcp_stable] <= 2.)
-        h_EvsEta3_mcAll->Fill(mcEne[n_mcp_stable]);
+        h_EvsEta3_mcAll->Fill(mcPt[n_mcp_stable]);
       else if (mcEtaAbs[n_mcp_stable] >= 2. && mcEtaAbs[n_mcp_stable] <= 2.5)
-        h_EvsEta4_mcAll->Fill(mcEne[n_mcp_stable]);
+        h_EvsEta4_mcAll->Fill(mcPt[n_mcp_stable]);
 
-      if (mcEne[n_mcp_stable] >= 0. && mcEne[n_mcp_stable] < 50.)
+      if (mcPt[n_mcp_stable] >= 0. && mcPt[n_mcp_stable] < 50.)
         h_EtavsE0_mcAll->Fill(mcEtaAbs[n_mcp_stable]);
-      else if (mcEne[n_mcp_stable] >= 50. && mcEne[n_mcp_stable] < 100.)
+      else if (mcPt[n_mcp_stable] >= 50. && mcPt[n_mcp_stable] < 100.)
         h_EtavsE1_mcAll->Fill(mcEtaAbs[n_mcp_stable]);
-      else if (mcEne[n_mcp_stable] >= 100. && mcEne[n_mcp_stable] < 150.)
+      else if (mcPt[n_mcp_stable] >= 100. && mcPt[n_mcp_stable] < 150.)
         h_EtavsE2_mcAll->Fill(mcEtaAbs[n_mcp_stable]);
-      else if (mcEne[n_mcp_stable] >= 150. && mcEne[n_mcp_stable] < 200.)
+      else if (mcPt[n_mcp_stable] >= 150. && mcPt[n_mcp_stable] < 200.)
         h_EtavsE3_mcAll->Fill(mcEtaAbs[n_mcp_stable]);
-      else if (mcEne[n_mcp_stable] >= 200. && mcEne[n_mcp_stable] <= 300.)
+      else if (mcPt[n_mcp_stable] >= 200. && mcPt[n_mcp_stable] <= 300.)
         h_EtavsE4_mcAll->Fill(mcEtaAbs[n_mcp_stable]);
-      else if (mcEne[n_mcp_stable] >= 300.)
+      else if (mcPt[n_mcp_stable] >= 300.)
         h_EtavsE5_mcAll->Fill(mcEtaAbs[n_mcp_stable]);
+
+      h_mc_pt->Fill(mcPt[n_mcp_stable]);
+      h_mc_eta->Fill(mcEta[n_mcp_stable]);
 
       ++n_mcp_stable;
     } // i loop
+
+    h_mcpstable->Fill(n_mcp_stable);
 
     // --- loop over the reconstructed particles
 
@@ -346,33 +450,33 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
               std::min(std::fabs(reco_phi[j] - mcPhi[k]),
                        float(2 * M_PI - std::fabs(reco_phi[j] - mcPhi[k])));
 
-          if ( // std::fabs(reco_ene[j] - mcEne[k]) < 0.1 * mcEne[k]
+          if ( // std::fabs(reco_pt[j] - mcPt[k]) < 0.1 * mcPt[k]
               true) {
             if (TMath::Sqrt(pow((reco_eta[j] - mcEta[k]), 2) +
-                            pow(deltaPhi, 2)) < 0.01) {
+                            pow(deltaPhi, 2)) < 0.05) {
 
               if (mcEtaAbs[k] >= 0. && mcEtaAbs[k] <= 0.5)
-                h_EvsEta0_Reco->Fill(mcEne[k]);
+                h_EvsEta0_Reco->Fill(mcPt[k]);
               else if (mcEtaAbs[k] >= 0.5 && mcEtaAbs[k] <= 1.)
-                h_EvsEta1_Reco->Fill(mcEne[k]);
+                h_EvsEta1_Reco->Fill(mcPt[k]);
               else if (mcEtaAbs[k] >= 1. && mcEtaAbs[k] <= 1.5)
-                h_EvsEta2_Reco->Fill(mcEne[k]);
+                h_EvsEta2_Reco->Fill(mcPt[k]);
               else if (mcEtaAbs[k] >= 1.5 && mcEtaAbs[k] <= 2.)
-                h_EvsEta3_Reco->Fill(mcEne[k]);
+                h_EvsEta3_Reco->Fill(mcPt[k]);
               else if (mcEtaAbs[k] >= 2. && mcEtaAbs[k] <= 2.5)
-                h_EvsEta4_Reco->Fill(mcEne[k]);
+                h_EvsEta4_Reco->Fill(mcPt[k]);
 
-              if (mcEne[k] >= 0. && mcEne[k] < 50.)
+              if (mcPt[k] >= 0. && mcPt[k] < 50.)
                 h_EtavsE0_Reco->Fill(mcEtaAbs[k]);
-              else if (mcEne[k] >= 50. && mcEne[k] < 100.)
+              else if (mcPt[k] >= 50. && mcPt[k] < 100.)
                 h_EtavsE1_Reco->Fill(mcEtaAbs[k]);
-              else if (mcEne[k] >= 100. && mcEne[k] < 150.)
+              else if (mcPt[k] >= 100. && mcPt[k] < 150.)
                 h_EtavsE2_Reco->Fill(mcEtaAbs[k]);
-              else if (mcEne[k] >= 150. && mcEne[k] < 200.)
+              else if (mcPt[k] >= 150. && mcPt[k] < 200.)
                 h_EtavsE3_Reco->Fill(mcEtaAbs[k]);
-              else if (mcEne[k] >= 200. && mcEne[k] <= 300.)
+              else if (mcPt[k] >= 200. && mcPt[k] <= 300.)
                 h_EtavsE4_Reco->Fill(mcEtaAbs[k]);
-              else if (mcEne[k] >= 300.)
+              else if (mcPt[k] >= 300.)
                 h_EtavsE5_Reco->Fill(mcEtaAbs[k]);
 
               break;
@@ -386,7 +490,13 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
     std::cout << "n_trks = " << n_trst / 4;
     std::cout << '\n';*/
 
-    for (int t = ts_idx; t < n_trst; t += 4) {
+    // k = 0 IP, k = 1 first tracker hit, k = 2 last tracker hit, k = 3 entrance
+    // ecal
+    float deltaRmin_tsmc = 1000.;
+    float deltaRmin_tscl = 1000.;
+    float association_done = false;
+
+    for (int t = ts_idx; t < n_trst; ++t) {
 
       ts_theta[t] = TMath::ATan(1. / ts_tnl[t]);
       if (ts_theta[t] < 0.) {
@@ -402,59 +512,178 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
                             (1 + pow(ts_tnl[t], -2)) / std::sin(ts_theta[t]),
                         2) +
                     pow(ts_ptunc[t], 2));
+      if (t % 4 == 0) {
 
-      for (int k = 0; k < n_mcp_stable; ++k) {
-
-        float deltaPhi =
-            std::min(std::fabs(ts_phi[t] - mcPhi[k]),
-                     float(2 * M_PI - std::fabs(ts_phi[t] - mcPhi[k])));
-        if ((ts_p[t] - mcPmag[k]) < 0.1 * mcPmag[k]) {
-          if (TMath::Sqrt(pow((ts_eta[t] - mcEta[k]), 2) + pow(deltaPhi, 2)) <
-              0.01) {
-
-            if (reco_pdg[0] == 211) {
-              // h_pt_pions->Fill(ts_pt[k]);
-              // h_pt_unc_pions->Fill(ts_ptunc[k]);
-
-              g_pt_pions->AddPoint(ts_pt[k], ts_ptunc[k]);
-
-            } else if (reco_pdg[0] == 2112) {
-              // h_pt_neutrons->Fill(ts_pt[k]);
-              // h_pt_unc_neutrons->Fill(ts_ptunc[k]);
-
-              g_pt_neutrons->AddPoint(ts_pt[k], ts_ptunc[k]);
-            }
-
-            if (mcEtaAbs[k] >= 0. && mcEtaAbs[k] <= 0.5)
-              h_EvsEta0_Trk->Fill(mcEne[k]);
-            else if (mcEtaAbs[k] >= 0.5 && mcEtaAbs[k] <= 1.)
-              h_EvsEta1_Trk->Fill(mcEne[k]);
-            else if (mcEtaAbs[k] >= 1. && mcEtaAbs[k] <= 1.5)
-              h_EvsEta2_Trk->Fill(mcEne[k]);
-            else if (mcEtaAbs[k] >= 1.5 && mcEtaAbs[k] <= 2.)
-              h_EvsEta3_Trk->Fill(mcEne[k]);
-            else if (mcEtaAbs[k] >= 2. && mcEtaAbs[k] <= 2.5)
-              h_EvsEta4_Trk->Fill(mcEne[k]);
-
-            if (mcEne[k] >= 0. && mcEne[k] < 50.)
-              h_EtavsE0_Trk->Fill(mcEtaAbs[k]);
-            else if (mcEne[k] >= 50. && mcEne[k] < 100.)
-              h_EtavsE1_Trk->Fill(mcEtaAbs[k]);
-            else if (mcEne[k] >= 100. && mcEne[k] < 150.)
-              h_EtavsE2_Trk->Fill(mcEtaAbs[k]);
-            else if (mcEne[k] >= 150. && mcEne[k] < 200.)
-              h_EtavsE3_Trk->Fill(mcEtaAbs[k]);
-            else if (mcEne[k] >= 200. && mcEne[k] <= 300.)
-              h_EtavsE4_Trk->Fill(mcEtaAbs[k]);
-            else if (mcEne[k] >= 300.)
-              h_EtavsE5_Trk->Fill(mcEtaAbs[k]);
-
+        for (int k = 0; k < n_mcp_stable; ++k) {
+          if (association_done == true)
             break;
+
+          float deltaPhi =
+              std::min(std::fabs(ts_phi[t] - mcPhi[k]),
+                       float(2 * M_PI - std::fabs(ts_phi[t] - mcPhi[k])));
+
+          float deltaR =
+              TMath::Sqrt(pow((ts_eta[t] - mcEta[k]), 2) + pow(deltaPhi, 2));
+
+          if (deltaR < deltaRmin_tsmc) {
+            deltaRmin_tsmc = deltaR;
           }
+          if (deltaR < 0.5) {
+            if (true
+                //(ts_p[t] - mcPmag[k]) < 0.1 * mcPmag[k]
+            ) {
+
+              if (reco_pdg[0] == 211) {
+                // h_pt_pions->Fill(ts_pt[k]);
+                // h_pt_unc_pions->Fill(ts_ptunc[k]);
+
+                g_pt_pions->AddPoint(ts_pt[k], ts_ptunc[k]);
+
+              } else if (reco_pdg[0] == 2112) {
+                // h_pt_neutrons->Fill(ts_pt[k]);
+                // h_pt_unc_neutrons->Fill(ts_ptunc[k]);
+
+                g_pt_neutrons->AddPoint(ts_pt[k], ts_ptunc[k]);
+              }
+
+              if (mcEtaAbs[k] >= 0. && mcEtaAbs[k] <= 0.5)
+                h_EvsEta0_Trk->Fill(mcPt[k]);
+              else if (mcEtaAbs[k] >= 0.5 && mcEtaAbs[k] <= 1.)
+                h_EvsEta1_Trk->Fill(mcPt[k]);
+              else if (mcEtaAbs[k] >= 1. && mcEtaAbs[k] <= 1.5)
+                h_EvsEta2_Trk->Fill(mcPt[k]);
+              else if (mcEtaAbs[k] >= 1.5 && mcEtaAbs[k] <= 2.)
+                h_EvsEta3_Trk->Fill(mcPt[k]);
+              else if (mcEtaAbs[k] >= 2. && mcEtaAbs[k] <= 2.5)
+                h_EvsEta4_Trk->Fill(mcPt[k]);
+
+              if (mcPt[k] >= 0. && mcPt[k] < 50.)
+                h_EtavsE0_Trk->Fill(mcEtaAbs[k]);
+              else if (mcPt[k] >= 50. && mcPt[k] < 100.)
+                h_EtavsE1_Trk->Fill(mcEtaAbs[k]);
+              else if (mcPt[k] >= 100. && mcPt[k] < 150.)
+                h_EtavsE2_Trk->Fill(mcEtaAbs[k]);
+              else if (mcPt[k] >= 150. && mcPt[k] < 200.)
+                h_EtavsE3_Trk->Fill(mcEtaAbs[k]);
+              else if (mcPt[k] >= 200. && mcPt[k] <= 300.)
+                h_EtavsE4_Trk->Fill(mcEtaAbs[k]);
+              else if (mcPt[k] >= 300.)
+                h_EtavsE5_Trk->Fill(mcEtaAbs[k]);
+
+              ok_track++;
+              association_done = true;
+              break;
+            }
+          }
+        } // k loop
+      }
+
+      if (n_trst != 4)
+        continue;
+
+      // compare track and cluster
+      if (t % 4 == 3 && n_cl > 0) {
+
+        for (int cl = 0; cl < n_cl; ++cl) {
+
+          cl_phi[cl] = TMath::ATan2(cl_y[cl], cl_x[cl]);
+          cl_eta[cl] =
+              0.5 *
+              TMath::Log((std::sqrt(cl_x[cl] * cl_x[cl] + cl_y[cl] * cl_y[cl] +
+                                    cl_z[cl] * cl_z[cl]) +
+                          cl_z[cl]) /
+                         (std::sqrt(cl_x[cl] * cl_x[cl] + cl_y[cl] * cl_y[cl] +
+                                    cl_z[cl] * cl_z[cl]) -
+                          cl_z[cl]));
+
+          float deltaPhi =
+              std::min(std::fabs(ts_phi[t] - cl_phi[cl]),
+                       float(2 * M_PI - std::fabs(ts_phi[t] - cl_phi[cl])));
+
+          float deltaR =
+              TMath::Sqrt(pow((ts_eta[t] - cl_eta[cl]), 2) + pow(deltaPhi, 2));
+
+          if (deltaR < deltaRmin_tscl)
+            deltaRmin_tscl = deltaR;
         }
-      } // k loop
-    }   // t loop
-  }     // ientry loop
+      }
+
+    } // t loop
+
+    if (n_mcp_stable < ok_track) {
+      std::cout << "Event " << ientry << ": "
+                << "n_mcp_stable = " << n_mcp_stable
+                << ", ok_track = " << ok_track << '\n';
+    }
+
+    if (n_trst == 0)
+      continue;
+
+    if (deltaRmin_tsmc < 500.) {
+      h_deltaR_tsmc->Fill(deltaRmin_tsmc);
+    }
+
+    if (deltaRmin_tscl < 500.) {
+      h_deltaR_tscl->Fill(deltaRmin_tscl);
+
+      if (n_reco == 1) {
+        if (std::abs(reco_pdg[0]) == 211) {
+          h_recopdg->Fill(0);
+          h_deltaR_tscl_pi->Fill(deltaRmin_tscl);
+        } else if (std::abs(reco_pdg[0]) == 2112) {
+          h_recopdg->Fill(3);
+          h_deltaR_tscl_neu->Fill(deltaRmin_tscl);
+        } else if (std::abs(reco_pdg[0]) == 11) {
+          h_recopdg->Fill(4);
+          h_deltaR_tscl_others->Fill(deltaRmin_tscl);
+        } else if (reco_pdg[0] == 22) {
+          h_recopdg->Fill(5);
+          h_deltaR_tscl_others->Fill(deltaRmin_tscl);
+        } else {
+          h_recopdg->Fill(8);
+          h_deltaR_tscl_others->Fill(deltaRmin_tscl);
+        }
+      } else if (n_reco == 2) {
+        if ((std::abs(reco_pdg[0]) == 211 && reco_pdg[1] == 22) ||
+            (reco_pdg[0] == 22 && std::abs(reco_pdg[1]) == 211)) {
+          h_recopdg->Fill(1);
+          h_deltaR_tscl_pi->Fill(deltaRmin_tscl);
+        } else if ((reco_pdg[0] == 2112 && reco_pdg[1] == 22) ||
+                   (reco_pdg[0] == 22 && reco_pdg[1] == 2112)) {
+          h_recopdg->Fill(6);
+          h_deltaR_tscl_neu->Fill(deltaRmin_tscl);
+        } else if ((std::abs(reco_pdg[0]) == 211 && reco_pdg[1] == 22) ||
+                   (reco_pdg[0] == 22 && std::abs(reco_pdg[1]) == 211)) {
+          h_recopdg->Fill(9);
+          h_deltaR_tscl_pi->Fill(deltaRmin_tscl);
+        } else if (reco_pdg[0] == 2112 && reco_pdg[1] == 2112) {
+          h_recopdg->Fill(10);
+          h_deltaR_tscl_neu->Fill(deltaRmin_tscl);
+        } else {
+          h_recopdg->Fill(8);
+          h_deltaR_tscl_others->Fill(deltaRmin_tscl);
+        }
+      } else if (n_reco > 2) {
+        if (std::abs(reco_pdg[0]) == 211) {
+          h_recopdg->Fill(2);
+          h_deltaR_tscl_pi->Fill(deltaRmin_tscl);
+        } else if (std::abs(reco_pdg[0]) == 11) {
+          h_recopdg->Fill(7);
+          h_deltaR_tscl_others->Fill(deltaRmin_tscl);
+        } else {
+          h_recopdg->Fill(8);
+          h_deltaR_tscl_neu->Fill(deltaRmin_tscl);
+        }
+
+        /*
+        std::cout << '\n';
+        for (int j = 0; j < n_reco; ++j) {
+          std::cout << reco_pdg[j] << "  +  ";
+        }
+        std::cout << '\n';*/
+      }
+    }
+  } // ientry loop
 
   // draw the histograms
   {
@@ -468,7 +697,7 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       eff_EvsEta0->Draw("APL");
       gPad->SetLogx();
       eff_EvsEta0->SetTitle("Pion ID efficiency (0 < |#eta_{gen}| < 0.5); "
-                            "E_{gen} [GeV]; Efficiency");
+                            "p_{T, gen} [GeV/c]; Efficiency");
       gPad->Update();
       auto graph = eff_EvsEta0->GetPaintedGraph();
       graph->SetMinimum(0.);
@@ -486,7 +715,7 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       eff_EvsEta1->SetConfidenceLevel(0.68);
       eff_EvsEta1->Draw("APL");
       eff_EvsEta1->SetTitle("Pion ID efficiency (0.5 < |#eta_{gen}| < 1); "
-                            "E_{gen} [GeV]; Efficiency");
+                            "p_{T, gen} [GeV/c]; Efficiency");
       gPad->Update();
       auto graph = eff_EvsEta1->GetPaintedGraph();
       graph->SetMinimum(0.);
@@ -507,7 +736,7 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       eff_EvsEta2->Draw("APL");
       gPad->SetLogx();
       eff_EvsEta2->SetTitle("Pion ID efficiency (1 < |#eta_{gen}| < 1.5); "
-                            "E_{gen} [GeV]; Efficiency");
+                            "p_{T, gen} [GeV/c]; Efficiency");
       gPad->Update();
       auto graph = eff_EvsEta2->GetPaintedGraph();
       graph->SetMinimum(0.);
@@ -527,7 +756,7 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       eff_EvsEta3->Draw("APL");
       gPad->SetLogx();
       eff_EvsEta3->SetTitle("Pion ID efficiency (1.5 < |#eta_{gen}| < 2); "
-                            "E_{gen} [GeV]; Efficiency");
+                            "p_{T, gen} [GeV/c]; Efficiency");
       gPad->Update();
       auto graph = eff_EvsEta3->GetPaintedGraph();
       graph->SetMinimum(0.);
@@ -547,7 +776,7 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       eff_EvsEta4->Draw("APL");
       gPad->SetLogx();
       eff_EvsEta4->SetTitle("Pion ID efficiency (2 < |#eta_{gen}| < 2.5); "
-                            "E_{gen} [GeV]; Efficiency");
+                            "p_{T, gen} [GeV/c]; Efficiency");
       gPad->Update();
       auto graph = eff_EvsEta4->GetPaintedGraph();
       graph->SetMinimum(0.);
@@ -555,13 +784,6 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       gPad->Update();
       c_EvsEta4_eff->SaveAs(plotsfolder + "/c_EvsEta4_eff.png");
       c_EvsEta4_eff->Close();
-    }
-
-    for (int b = 0; b != h_EtavsE0_Reco->GetNbinsX() + 2; ++b) {
-      std::cout << "h_EtavsE0_Reco (bin " << b
-                << ") = " << h_EtavsE0_Reco->GetBinContent(b) << '\n';
-      std::cout << "h_EtavsE0_mcAll (bin " << b
-                << ") = " << h_EtavsE0_mcAll->GetBinContent(b) << '\n';
     }
 
     if (TEfficiency::CheckConsistency(*h_EtavsE0_Reco, *h_EtavsE0_mcAll)) {
@@ -572,7 +794,7 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       // eff_EtavsE0->SetStatisticOption(TEfficiency::kBBayesian);
       eff_EtavsE0->SetConfidenceLevel(0.68);
       eff_EtavsE0->Draw("APL");
-      eff_EtavsE0->SetTitle("Pion ID efficiency (0 < E_{gen} < 50 GeV); "
+      eff_EtavsE0->SetTitle("Pion ID efficiency (0 < p_{T, gen} < 50 GeV); "
                             "|#eta_{gen}|; Efficiency");
       gPad->Update();
       auto graph = eff_EtavsE0->GetPaintedGraph();
@@ -593,7 +815,7 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       // eff_EtavsE1->SetStatisticOption(TEfficiency::kBBayesian);
       eff_EtavsE1->SetConfidenceLevel(0.68);
       eff_EtavsE1->Draw("APL");
-      eff_EtavsE1->SetTitle("Pion ID efficiency (50 < E_{gen} < 100 GeV); "
+      eff_EtavsE1->SetTitle("Pion ID efficiency (50 < p_{T, gen} < 100 GeV); "
                             "|#eta_{gen}|; Efficiency");
       gPad->Update();
       auto graph = eff_EtavsE1->GetPaintedGraph();
@@ -614,7 +836,7 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       // eff_EtavsE2->SetStatisticOption(TEfficiency::kBBayesian);
       eff_EtavsE2->SetConfidenceLevel(0.68);
       eff_EtavsE2->Draw("APL");
-      eff_EtavsE2->SetTitle("Pion ID efficiency (100 < E_{gen} < 150 GeV); "
+      eff_EtavsE2->SetTitle("Pion ID efficiency (100 < p_{T, gen} < 150 GeV); "
                             "|#eta_{gen}|; Efficiency");
       gPad->Update();
       auto graph = eff_EtavsE2->GetPaintedGraph();
@@ -636,7 +858,7 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       // eff_EtavsE3->SetStatisticOption(TEfficiency::kBBayesian);
       eff_EtavsE3->SetConfidenceLevel(0.68);
       eff_EtavsE3->Draw("APL");
-      eff_EtavsE3->SetTitle("Pion ID efficiency (150 < E_{gen} < 200 GeV); "
+      eff_EtavsE3->SetTitle("Pion ID efficiency (150 < p_{T, gen} < 200 GeV); "
                             "|#eta_{gen}|; Efficiency");
       gPad->Update();
       auto graph = eff_EtavsE3->GetPaintedGraph();
@@ -658,7 +880,7 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       // eff_EtavsE4->SetStatisticOption(TEfficiency::kBBayesian);
       eff_EtavsE4->SetConfidenceLevel(0.68);
       eff_EtavsE4->Draw("APL");
-      eff_EtavsE4->SetTitle("Pion ID efficiency (200 < E_{gen} < 300 GeV); "
+      eff_EtavsE4->SetTitle("Pion ID efficiency (200 < p_{T, gen} < 300 GeV); "
                             "|#eta_{gen}|; Efficiency");
       gPad->Update();
       auto graph = eff_EtavsE4->GetPaintedGraph();
@@ -680,7 +902,7 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       // eff_EtavsE5->SetStatisticOption(TEfficiency::kBBayesian);
       eff_EtavsE5->SetConfidenceLevel(0.68);
       eff_EtavsE5->Draw("APL");
-      eff_EtavsE5->SetTitle("Pion ID efficiency (300 < E_{gen} < 500 GeV); "
+      eff_EtavsE5->SetTitle("Pion ID efficiency (300 < p_{T, gen} < 500 GeV); "
                             "|#eta_{gen}|; Efficiency");
       gPad->Update();
       auto graph = eff_EtavsE5->GetPaintedGraph();
@@ -703,7 +925,7 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       eff_trk_EvsEta0->Draw("APL");
       gPad->SetLogx();
       eff_trk_EvsEta0->SetTitle("Pion ID efficiency (0 < |#eta_{gen}| < 0.5); "
-                                "E_{gen} [GeV]; Efficiency");
+                                "p_{T, gen} [GeV/c]; Efficiency");
       gPad->Update();
       auto graph = eff_trk_EvsEta0->GetPaintedGraph();
       graph->SetMinimum(0.);
@@ -720,8 +942,8 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       // eff_trk_EvsEta1->SetStatisticOption(TEfficiency::kBBayesian);
       eff_trk_EvsEta1->SetConfidenceLevel(0.68);
       eff_trk_EvsEta1->Draw("APL");
-      eff_trk_EvsEta1->SetTitle("Pion ID efficiency (0.5 < |#eta_{gen}| < 1); "
-                                "E_{gen} [GeV]; Efficiency");
+      eff_trk_EvsEta1->SetTitle("Track efficiency (0.5 < |#eta_{gen}| < 1); "
+                                "p_{T, gen} [GeV/c]; Efficiency");
       gPad->Update();
       auto graph = eff_trk_EvsEta1->GetPaintedGraph();
       graph->SetMinimum(0.);
@@ -741,8 +963,8 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       eff_trk_EvsEta2->SetConfidenceLevel(0.68);
       eff_trk_EvsEta2->Draw("APL");
       gPad->SetLogx();
-      eff_trk_EvsEta2->SetTitle("Pion ID efficiency (1 < |#eta_{gen}| < 1.5); "
-                                "E_{gen} [GeV]; Efficiency");
+      eff_trk_EvsEta2->SetTitle("Track efficiency (1 < |#eta_{gen}| < 1.5); "
+                                "p_{T, gen} [GeV/c]; Efficiency");
       gPad->Update();
       auto graph = eff_trk_EvsEta2->GetPaintedGraph();
       graph->SetMinimum(0.);
@@ -761,8 +983,8 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       eff_trk_EvsEta3->SetConfidenceLevel(0.68);
       eff_trk_EvsEta3->Draw("APL");
       gPad->SetLogx();
-      eff_trk_EvsEta3->SetTitle("Pion ID efficiency (1.5 < |#eta_{gen}| < 2); "
-                                "E_{gen} [GeV]; Efficiency");
+      eff_trk_EvsEta3->SetTitle("Track efficiency (1.5 < |#eta_{gen}| < 2); "
+                                "p_{T, gen} [GeV/c]; Efficiency");
       gPad->Update();
       auto graph = eff_trk_EvsEta3->GetPaintedGraph();
       graph->SetMinimum(0.);
@@ -781,8 +1003,8 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       eff_trk_EvsEta4->SetConfidenceLevel(0.68);
       eff_trk_EvsEta4->Draw("APL");
       gPad->SetLogx();
-      eff_trk_EvsEta4->SetTitle("Pion ID efficiency (2 < |#eta_{gen}| < 2.5); "
-                                "E_{gen} [GeV]; Efficiency");
+      eff_trk_EvsEta4->SetTitle("Track efficiency (2 < |#eta_{gen}| < 2.5); "
+                                "p_{T, gen} [GeV/c]; Efficiency");
       gPad->Update();
       auto graph = eff_trk_EvsEta4->GetPaintedGraph();
       graph->SetMinimum(0.);
@@ -800,7 +1022,7 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       // eff_trk_EtavsE0->SetStatisticOption(TEfficiency::kBBayesian);
       eff_trk_EtavsE0->SetConfidenceLevel(0.68);
       eff_trk_EtavsE0->Draw("APL");
-      eff_trk_EtavsE0->SetTitle("Pion ID efficiency (0 < E_{gen} < 50 GeV); "
+      eff_trk_EtavsE0->SetTitle("Track efficiency (0 < p_{T, gen} < 50 GeV); "
                                 "|#eta_{gen}|; Efficiency");
       gPad->Update();
       auto graph = eff_trk_EtavsE0->GetPaintedGraph();
@@ -821,7 +1043,7 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       // eff_trk_EtavsE1->SetStatisticOption(TEfficiency::kBBayesian);
       eff_trk_EtavsE1->SetConfidenceLevel(0.68);
       eff_trk_EtavsE1->Draw("APL");
-      eff_trk_EtavsE1->SetTitle("Pion ID efficiency (50 < E_{gen} < 100 GeV); "
+      eff_trk_EtavsE1->SetTitle("Track efficiency (50 < p_{T, gen} < 100 GeV); "
                                 "|#eta_{gen}|; Efficiency");
       gPad->Update();
       auto graph = eff_trk_EtavsE1->GetPaintedGraph();
@@ -833,6 +1055,13 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       c_EtavsE1_eff_trk->SaveAs(plotsfolder + "/c_EtavsE1_eff_trk.png");
       c_EtavsE1_eff_trk->Close();
     }
+    /*
+    for (int b = 0; b != h_EtavsE1_Trk->GetNbinsX() + 2; ++b) {
+      std::cout << "h_EtavsE1_Trk (bin " << b
+                << ") = " << h_EtavsE0_Reco->GetBinContent(b) << '\n';
+      std::cout << "h_EtavsE1_mcAll (bin " << b
+                << ") = " << h_EtavsE1_mcAll->GetBinContent(b) << '\n';
+    }*/
 
     if (TEfficiency::CheckConsistency(*h_EtavsE2_Trk, *h_EtavsE2_mcAll)) {
       auto c_EtavsE2_eff_trk =
@@ -842,8 +1071,9 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       // eff_trk_EtavsE2->SetStatisticOption(TEfficiency::kBBayesian);
       eff_trk_EtavsE2->SetConfidenceLevel(0.68);
       eff_trk_EtavsE2->Draw("APL");
-      eff_trk_EtavsE2->SetTitle("Pion ID efficiency (100 < E_{gen} < 150 GeV); "
-                                "|#eta_{gen}|; Efficiency");
+      eff_trk_EtavsE2->SetTitle(
+          "Track efficiency (100 < p_{T, gen} < 150 GeV); "
+          "|#eta_{gen}|; Efficiency");
       gPad->Update();
       auto graph = eff_trk_EtavsE2->GetPaintedGraph();
       graph->SetMinimum(0.);
@@ -864,8 +1094,9 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       // eff_trk_EtavsE3->SetStatisticOption(TEfficiency::kBBayesian);
       eff_trk_EtavsE3->SetConfidenceLevel(0.68);
       eff_trk_EtavsE3->Draw("APL");
-      eff_trk_EtavsE3->SetTitle("Pion ID efficiency (150 < E_{gen} < 200 GeV); "
-                                "|#eta_{gen}|; Efficiency");
+      eff_trk_EtavsE3->SetTitle(
+          "Track efficiency (150 < p_{T, gen} < 200 GeV); "
+          "|#eta_{gen}|; Efficiency");
       gPad->Update();
       auto graph = eff_trk_EtavsE3->GetPaintedGraph();
       graph->SetMinimum(0.);
@@ -886,8 +1117,9 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       // eff_trk_EtavsE4->SetStatisticOption(TEfficiency::kBBayesian);
       eff_trk_EtavsE4->SetConfidenceLevel(0.68);
       eff_trk_EtavsE4->Draw("APL");
-      eff_trk_EtavsE4->SetTitle("Pion ID efficiency (200 < E_{gen} < 300 GeV); "
-                                "|#eta_{gen}|; Efficiency");
+      eff_trk_EtavsE4->SetTitle(
+          "Track efficiency (200 < p_{T, gen} < 300 GeV); "
+          "|#eta_{gen}|; Efficiency");
       gPad->Update();
       auto graph = eff_trk_EtavsE4->GetPaintedGraph();
       graph->SetMinimum(0.);
@@ -908,8 +1140,9 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
       // eff_trk_EtavsE5->SetStatisticOption(TEfficiency::kBBayesian);
       eff_trk_EtavsE5->SetConfidenceLevel(0.68);
       eff_trk_EtavsE5->Draw("APL");
-      eff_trk_EtavsE5->SetTitle("Pion ID efficiency (300 < E_{gen} < 500 GeV); "
-                                "|#eta_{gen}|; Efficiency");
+      eff_trk_EtavsE5->SetTitle(
+          "Track efficiency (300 < p_{T, gen} < 500 GeV); "
+          "|#eta_{gen}|; Efficiency");
       gPad->Update();
       auto graph = eff_trk_EtavsE5->GetPaintedGraph();
       graph->SetMinimum(0.);
@@ -935,9 +1168,9 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
     g_pt_pions->SetMarkerSize(0.3);
     g_pt_pions->SetMarkerColor(kBlue);
     gPad->SetLogy();
-    // g_pt_pions->GetXaxis()->SetLimits();
+    g_pt_pions->GetXaxis()->SetLimits(0., 350.);
     g_pt_pions->SetMaximum(0.5);
-    g_pt_pions->Draw("APL");
+    g_pt_pions->Draw("AP");
     c_ptvssigma->cd(2);
     gStyle->SetOptStat(111111);
     g_pt_neutrons->SetTitle(
@@ -947,12 +1180,137 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
     g_pt_neutrons->SetMarkerSize(0.3);
     g_pt_neutrons->SetMarkerColor(kRed);
     gPad->SetLogy();
-    // g_pt_neutrons->GetXaxis()->SetLimits();
+    g_pt_neutrons->GetXaxis()->SetLimits(0., 350.);
     g_pt_neutrons->SetMaximum(0.5);
-    g_pt_neutrons->Draw("APL");
+    g_pt_neutrons->Draw("AP");
     c_ptvssigma->SaveAs(plotsfolder + "/c_scatter.pdf");
     c_ptvssigma->Close();
+
+    TCanvas *c_deltaR_tsmc =
+        new TCanvas("c_deltaR_tsmc", "c_deltaR_tsmc", 800, 800);
+    gStyle->SetOptStat(111111);
+    TGaxis::SetMaxDigits(3);
+    // c_deltaR_tsmc->SetLogx();
+    h_deltaR_tsmc->Draw();
+    c_deltaR_tsmc->SaveAs("./plots/c_deltaR_tsmc.png");
+    c_deltaR_tsmc->Close();
+
+    TCanvas *c_deltaR_tscl =
+        new TCanvas("c_deltaR_tscl", "c_deltaR_tscl", 800, 800);
+    gStyle->SetOptStat(111111);
+    TGaxis::SetMaxDigits(3);
+    // c_deltaR_tscl->SetLogx();
+    h_deltaR_tscl->GetXaxis()->SetRangeUser(1.e-4, 0.3);
+    h_deltaR_tscl->Draw();
+    c_deltaR_tscl->SaveAs("./plots/c_deltaR_tscl.png");
+    c_deltaR_tscl->Close();
+
+    TCanvas *c_deltaR_tscl_pi =
+        new TCanvas("c_deltaR_tscl_pi", "c_deltaR_tscl_pi", 800, 800);
+    gStyle->SetOptStat(111111);
+    TGaxis::SetMaxDigits(3);
+    // c_deltaR_tscl_pi->SetLogx();
+    h_deltaR_tscl_pi->GetXaxis()->SetRangeUser(1.e-4, 0.3);
+    h_deltaR_tscl_pi->Draw();
+    c_deltaR_tscl_pi->SaveAs("./plots/c_deltaR_tscl_pi.png");
+    c_deltaR_tscl_pi->Close();
+
+    TCanvas *c_deltaR_tscl_neu =
+        new TCanvas("c_deltaR_tscl_neu", "c_deltaR_tscl_neu", 800, 800);
+    gStyle->SetOptStat(111111);
+    TGaxis::SetMaxDigits(3);
+    // c_deltaR_tscl_neu->SetLogx();
+    h_deltaR_tscl_neu->GetXaxis()->SetRangeUser(1.e-4, 0.3);
+    h_deltaR_tscl_neu->Draw();
+    c_deltaR_tscl_neu->SaveAs("./plots/c_deltaR_tscl_neu.png");
+    c_deltaR_tscl_neu->Close();
+
+    TCanvas *c_deltaR_tscl_others =
+        new TCanvas("c_deltaR_tscl_others", "c_deltaR_tscl_others", 800, 800);
+    gStyle->SetOptStat(111111);
+    TGaxis::SetMaxDigits(3);
+    // c_deltaR_tscl_others->SetLogx();
+    h_deltaR_tscl_others->GetXaxis()->SetRangeUser(1.e-4, 0.3);
+    h_deltaR_tscl_others->Draw();
+    c_deltaR_tscl_others->SaveAs("./plots/c_deltaR_tscl_others.png");
+    c_deltaR_tscl_others->Close();
+
+    TCanvas *c_ncl = new TCanvas("c_ncl", "c_ncl", 800, 800);
+    gStyle->SetOptStat(111111);
+    TGaxis::SetMaxDigits(3);
+    h_ncl->Draw();
+    c_ncl->SaveAs("./plots/c_ncl.png");
+    c_ncl->Close();
+
+    TCanvas *c_nts = new TCanvas("c_nts", "c_nts", 800, 800);
+    gStyle->SetOptStat(111111);
+    TGaxis::SetMaxDigits(3);
+    h_nts->Draw();
+    c_nts->SaveAs("./plots/c_nts.png");
+    c_nts->Close();
+    TCanvas *c_mcpstable = new TCanvas("c_mcpstable", "c_mcpstable", 800, 800);
+    gStyle->SetOptStat(111111);
+    TGaxis::SetMaxDigits(3);
+    h_mcpstable->Draw();
+    c_mcpstable->SaveAs("./plots/c_mcpstable.png");
+    c_mcpstable->Close();
+
+    const char *reco_labels[11] = {"#pi^{#pm}",
+                                   "#pi^{#pm} + #gamma",
+                                   "#pi^{#pm} + >1 prts ",
+                                   "n",
+                                   "e^{#pm}",
+                                   "#gamma",
+                                   "n + #gamma",
+                                   "e^{#pm} + #gamma",
+                                   "Others (ns+#gammas)",
+                                   "#pi^{#pm} + n",
+                                   "2n"};
+
+    TCanvas *c_recopdg = new TCanvas("c_recopdg", "c_recopdg", 800, 800);
+    gStyle->SetOptStat(111111);
+    h_recopdg->Draw();
+    for (int i = 1; i != h_recopdg->GetNbinsX() + 1; i++)
+      h_recopdg->GetXaxis()->SetBinLabel(i, reco_labels[i - 1]);
+    c_recopdg->SaveAs("./plots/c_recopdg.png");
+    c_recopdg->Close();
+
+    TCanvas *c_mc_pt = new TCanvas("c_mc_pt", "c_mc_pt", 800, 800);
+    gStyle->SetOptStat(111111);
+    h_mc_pt->Draw();
+    c_mc_pt->SaveAs("./plots/c_mc_pt.png");
+    c_mc_pt->Close();
+
+    TCanvas *c_mc_eta = new TCanvas("c_mc_eta", "c_mc_eta", 800, 800);
+    gStyle->SetOptStat(111111);
+    h_mc_eta->Draw();
+    c_mc_eta->SaveAs("./plots/c_mc_eta.png");
+    c_mc_eta->Close();
   }
+
+  // Create a new .root file
+  TFile *outputFile = new TFile("../efficiencies.root", "RECREATE");
+
+  // Create a directory (folder) named "piguns" inside the root file
+  TDirectory *dir = outputFile->mkdir("piguns");
+  dir->cd();
+
+  // Save the TEfficiency objects to the file
+  eff_EvsEta0->Write("eff_EvsEta0");
+  eff_EvsEta1->Write("eff_EvsEta1");
+  eff_EvsEta2->Write("eff_EvsEta2");
+  eff_EvsEta3->Write("eff_EvsEta3");
+  eff_EvsEta4->Write("eff_EvsEta4");
+  eff_EtavsE0->Write("eff_EtavsE0");
+  eff_EtavsE1->Write("eff_EtavsE1");
+  eff_EtavsE2->Write("eff_EtavsE2");
+  eff_EtavsE3->Write("eff_EtavsE3");
+  eff_EtavsE4->Write("eff_EtavsE4");
+  eff_EtavsE5->Write("eff_EtavsE5");
+  // Close the file
+  outputFile->Close();
+  // Clean up
+  outputFile->Delete();
 
   // Clean up the heap
   {
@@ -978,6 +1336,13 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
     delete[] mcPdg;
     delete[] reco_eta;
     delete[] reco_phi;
+
+    delete[] cl_ene;
+    delete[] cl_phi;
+    delete[] cl_x;
+    delete[] cl_y;
+    delete[] cl_z;
+    delete[] cl_eta;
 
     h_EvsEta0_mcAll->Delete();
     h_EvsEta1_mcAll->Delete();
@@ -1037,6 +1402,14 @@ void lctuplePiAnalysis(const TString filename = lctuple_piguns.root") {
     eff_trk_EtavsE5->Delete();
     g_pt_pions->Delete();
     g_pt_neutrons->Delete();
+    h_deltaR_tsmc->Delete();
+    h_deltaR_tscl->Delete();
+    h_deltaR_tscl_pi->Delete();
+    h_deltaR_tscl_neu->Delete();
+    h_deltaR_tscl_others->Delete();
+    h_ncl->Delete();
+    h_nts->Delete();
+    h_recopdg->Delete();
   }
 
   // --- Close the ntuple file
